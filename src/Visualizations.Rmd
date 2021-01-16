@@ -1,0 +1,87 @@
+---
+title: "Visualizations"
+Author: "Sebastian Calzadilla"
+output: html_notebook
+---
+
+```{r}
+# Installs the library required. If you can't run the code, or you know you don't have the library, please remove the # underneath and run the chunk.
+
+#install.packages("tidyverse")
+```
+
+
+```{r}
+# Loads the library required
+
+library(tidyverse)
+```
+
+```{r}
+# Imports the data
+DecemberData <- read.csv("2020-12.csv")
+NovemberData <- read.csv("2020-11.csv")
+OctoberData <- read.csv("2020-10.csv")
+```
+
+```{r}
+# Gets the most popular streaming topics on top
+DecemberData <- arrange(DecemberData, desc(DecemberData$hours_watched))
+# Removes the first row of the data set which is the most stramed topic. This is Chatting which I suppose is intervies and not E-sports per se
+DecemberData <- DecemberData[-1,]
+# Gets the top 10 most streamed games for December
+top10GamesDec <- head(DecemberData, 10)
+# Gets the names of these games
+names <- top10Games$game
+
+# Get the data for the top 10 games in december in the November and October's data frames.
+top10GamesNov <- subset(NovemberData, game %in% names)
+top10GamesOct <- subset(OctoberData, game %in% names)
+
+# Adds a Month identifier
+top10GamesDec$Month <- 12
+top10GamesNov$Month <- 11
+top10GamesOct$Month <- 10
+
+# Binds data frames and the displays the data contained.
+completeDataset <- rbind(top10GamesDec, top10GamesNov, top10GamesOct)
+completeDataset
+
+```
+
+
+
+```{r}
+# Bar plot that shows the amount of hours watched per game in millions for the month of December
+
+ggplot(data = top10GamesDec, mapping = aes(x = reorder(game, hours_watched), y = hours_watched/1000000, fill = game)) + geom_col() + theme(legend.position = "none") + coord_flip() +geom_text(aes(label = hours_watched/1000000), position = position_dodge(width = 0.9), hjust = 0.7) + labs( title = "Amount of hours watched per game", subtitle = "Data for the month of December", caption = "data gathered from: streamhatchet.com") + xlab("Game Name") + ylab("Hours in millions")
+```
+
+
+
+```{r}
+# Pie chart that demonstrates the amount of viewers per game
+
+pie(top10GamesDec$average_viewers, top10GamesDec$game, col = rainbow(length(top10GamesDec$game)), main = "Average viewers per game")
+```
+
+```{r}
+# scatterplot with ratio of viewrs to channels
+
+ggplot(data = top10GamesDec, mapping = aes(x = reorder(game, hours_watched), y = average_viewers/average_channels, color = game)) + geom_point(aes(size=1)) +coord_flip() + theme(legend.position = "none") + labs( title = "Ratio of viewers per channel", subtitle = "Data for the month of December", caption = "data gathered from: streamhatchet.com") + xlab("Game Name") + ylab("Viewers per unique channel in average")
+
+```
+
+```{r}
+# Line graphs of viewers. It creates a line graph for each game and its data.
+
+completeDataset2 <- group_by(completeDataset, game)
+ggplot() + geom_line(data = subset(completeDataset2, game == completeDataset2$game[1]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1))+ geom_line(data = subset(completeDataset2, game == completeDataset2$game[2]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) + geom_line(data = subset(completeDataset2, game == completeDataset2$game[3]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) +
+  geom_line(data = subset(completeDataset2, game == completeDataset2$game[4]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) + geom_line(data = subset(completeDataset2, game == completeDataset2$game[5]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) +
+  geom_line(data = subset(completeDataset2, game == completeDataset2$game[6]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) + geom_line(data = subset(completeDataset2, game == completeDataset2$game[7]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) +
+  geom_line(data = subset(completeDataset2, game == completeDataset2$game[8]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) + geom_line(data = subset(completeDataset2, game == completeDataset2$game[9]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) +
+  geom_line(data = subset(completeDataset2, game == completeDataset2$game[10]), mapping = aes(x = Month, y = average_viewers/1000, color = game, group = 1)) + labs( title = "Average amount of viewers per Month", subtitle = "Data from October 2020 to December 2020", caption = "data gathered from: streamhatchet.com") + xlab("Month") + ylab("Viewers in thousands")
+```
+
+
+
