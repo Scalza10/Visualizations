@@ -1,0 +1,72 @@
+---
+title: "Visualizations"
+Author: "Sebastian Calzadilla"
+output: html_notebook
+---
+
+```{r}
+# Installs the library required. If you can't run the code, or you know you don't have the library, please remove the # underneath and run the chunk.
+
+#install.packages("tidyverse")
+```
+
+
+```{r}
+# Loads the library required
+
+library(tidyverse)
+```
+
+```{r}
+# Imports the data
+DecemberData <- read.csv("2020-12.csv")
+NovemberData <- read.csv("2020-11.csv")
+OctoberData <- read.csv("2020-10.csv")
+```
+
+```{r}
+# Gets the most popular streaming topics on top
+DecemberData <- arrange(DecemberData, desc(DecemberData$hours_watched))
+# Removes the first row of the data set which is the most stramed topic. This is Chatting which I suppose is intervies and not E-sports per se
+DecemberData <- DecemberData[-1,]
+# Gets the top 10 most streamed games for December
+top10GamesDec <- head(DecemberData, 10)
+# Gets the names of these games
+names <- top10GamesDec$game
+
+# Get the data for the top 10 games in december in the November and October's data frames.
+top10GamesNov <- subset(NovemberData, game %in% names)
+top10GamesOct <- subset(OctoberData, game %in% names)
+
+# Adds a Month identifier
+top10GamesDec$Month <- 12
+top10GamesNov$Month <- 11
+top10GamesOct$Month <- 10
+
+# Binds data frames and the displays the data contained.
+completeDataset <- rbind(top10GamesDec, top10GamesNov, top10GamesOct)
+completeDataset$AVG_hours <- ifelse(completeDataset$hours_watched > (mean(completeDataset$hours_watched) + 10000000), "Above AVG", ifelse(completeDataset$hours_watched < (mean(completeDataset$hours_watched) - 10000000), "Below AVG", "Average"))
+mean(completeDataset$hours_watched)
+completeDataset
+
+```
+
+
+
+```{r}
+ggplot(completeDataset, aes(x = game, y = average_viewers/1000, fill = game)) + geom_boxplot() + coord_flip() + labs( title = "Average amount of viewers", subtitle = "Data from October 2020 to December 2020", caption = "data gathered from: streamhatchet.com") + xlab("Game") + ylab("Viewers in thousands") + ggsave("BoxPlot.png")
+```
+
+
+```{r}
+ggplot(completeDataset, aes(x = AVG_hours, fill = game)) + geom_histogram(stat = "count") + labs( title = "Categorized amount of viewed hours", subtitle = "Data from October 2020 to December 2020", caption = "data gathered from: streamhatchet.com") + xlab("Category") + ylab("Count(each small block counts as one apperance)") + ggsave("Histogram.png")
+```
+
+```{r}
+ggplot(completeDataset, aes(x=game, y = unique_channels/1000, fill = game)) + 
+  geom_violin()  + stat_summary(fun.y=mean, geom="point", shape=23, size=2, fill = "red")+ theme(axis.text.x = element_text(angle = 90)) + labs( title = "Unique channels per game", subtitle = "Data from October 2020 to December 2020", caption = "data gathered from: streamhatchet.com") + xlab("Game") + ylab("Unique Channels in thousands") + ggsave("ViolinPlot.png")
+```
+
+
+
+
